@@ -15,7 +15,7 @@ namespace web_scraper
 
                 string county = Console.ReadLine();
 
-                string capitalizedCounty = Capitalize(county);
+                string capitalizedCounty = Helper.Capitalize(county);
 
                 using var client = new HttpClient();
 
@@ -25,27 +25,27 @@ namespace web_scraper
                 {
                     string html = await result.Content.ReadAsStringAsync();
 
-                    string[] countySightings = ProcessHTML(html, capitalizedCounty);
+                    string[] countySightings = Helper.ProcessHTML(html, capitalizedCounty);
 
                     if (countySightings.Any())
                     {
 
                         Console.WriteLine($"Today's sightings for { capitalizedCounty }");
 
-                        DrawLine();
+                        Helper.DrawLine();
 
                         foreach (string sighting in countySightings)
                         {
                             string[] columns = sighting
                                                .Split("col-sx-12");
 
-                            string date = ProcessDate(columns[2]);
+                            string date = Helper.ProcessDate(columns[2]);
 
-                            string species = ProcessSpecies(columns[3]);
+                            string species = Helper.ProcessSpecies(columns[3]);
 
                             Console.WriteLine($"{ date } - { species }");
 
-                            DrawLine();
+                            Helper.DrawLine();
                         }
                     }
                     else
@@ -56,68 +56,11 @@ namespace web_scraper
                 }
                 else
                 {
-                    HandleServerError(result);
+                    Helper.HandleServerError(result);
                 }
             }
         }
 
-        static string ProcessDate(string dateHTML)
-        {
-            return dateHTML
-                   .Split("10pt;\">")[1]
-                   .Split("</div>")[0]
-                   .Trim();
-        }
-
-        static string ProcessSpecies(string speciesHTML)
-        {
-            return speciesHTML
-                   .Split("/species-guide/")[1]
-                   .Split("\">")[1]
-                   .Split("</a>")[0]
-                   .Trim()
-                   .Replace("&#39;", "'");
-        }
-
-        static void DrawLine()
-        {
-            Console.WriteLine("----------------------------------");
-        }
-
-        static string Capitalize(string word)
-        {
-            string[] multiwordCounty = word.Split(" ");
-
-            string capitalizedCounty = string.Empty;
-
-            foreach (string item in multiwordCounty)
-            {
-                string capitalizedWord = char.ToUpper(item[0]) + item.Substring(1);
-
-                capitalizedCounty += $"{ capitalizedWord } ";
-            }
-
-            return capitalizedCounty.Trim();
-        }
-
-        static string[] ProcessHTML(string html, string county)
-        {
-            string[] sightings = html.Split("sighting-header");
-
-            string[] countySightings = sightings
-                                       .Where(x => x.Contains(county))
-                                       .ToArray();
-
-            return countySightings;
-        }
-
-        static void HandleServerError(HttpResponseMessage result)
-        {
-            Console.WriteLine("Birdguides appears to be experiencing server issues");
-
-            Console.WriteLine("Error details:");
-
-            Console.WriteLine($"Status code: { result.StatusCode }");
-        }
+        
     }
 }
